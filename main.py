@@ -55,7 +55,7 @@ parser.add_argument(
     help='ELMo weight file path',
 )
 parser.add_argument(
-    '--options_path',
+    '--options_file',
     type=str,
     required=True,
     help='ELMo options file path',

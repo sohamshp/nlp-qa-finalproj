@@ -191,7 +191,7 @@ class BaselineReader(nn.Module):
         # Local Copy
         # options_file = "C:/Users/Soham/Desktop/elmo_2x1024_128_2048cnn_1xhighway_options.json"
         # weight_file = "C:/Users/Soham/Desktop/elmo_2x1024_128_2048cnn_1xhighway_weights.hdf5"
-        self.elmo = Elmo(args.options_file, self.weight_file, 1, dropout=0)
+        self.elmo = Elmo(self.args.options_file, self.args.weight_file, 1, dropout=0)
 
         # Initialize Context2Query (2)
         self.aligned_att = AlignedAttention(args.embedding_dim)
