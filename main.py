@@ -508,7 +508,10 @@ def main(args):
     print()
 
     if args.model_path:
-        model.load_state_dict(torch.load(args.model_path, map_location='cpu'))
+        try:
+            model.load_state_dict(torch.load(args.model_path, map_location='cpu'))
+        except:
+            pass
 
     if args.use_gpu:
         model = cuda(args, model)
