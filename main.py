@@ -532,7 +532,7 @@ def main(args):
             eval_history.append(eval_loss < best_eval_loss)
             if eval_loss < best_eval_loss:
                 best_eval_loss = eval_loss
-                torch.save(model.state_dict(), args.model_path)
+            torch.save(model.state_dict(), args.model_path)
 
             print(
                 f'epoch = {epoch} | '
