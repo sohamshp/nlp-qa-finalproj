@@ -48,6 +48,20 @@ _TQDM_OPTIONS = {
 parser = argparse.ArgumentParser()
 
 # Training arguments.
+parser.add_argument(
+    '--weight_file',
+    type=str,
+    required=True,
+    help='ELMo weight file path',
+)
+parser.add_argument(
+    '--options_path',
+    type=str,
+    required=True,
+    help='ELMo options file path',
+)
+
+
 parser.add_argument('--device', type=int)
 parser.add_argument(
     '--use_gpu',
@@ -228,7 +242,7 @@ def _early_stop(args, eval_history):
     """
     Determines early stopping conditions. If the evaluation loss has
     not improved after `args.early_stop` epoch(s), then training
-    is ended prematurely. 
+    is ended prematurely.
 
     Args:
         args: `argparse` object.
@@ -388,7 +402,7 @@ def evaluate(args, epoch, model, dataset):
 def write_predictions(args, model, dataset):
     """
     Writes model predictions to an output file. The official QA metrics (EM/F1)
-    can be computed using `evaluation.py`. 
+    can be computed using `evaluation.py`.
 
     Args:
         args: `argparse` object.
@@ -430,7 +444,7 @@ def write_predictions(args, model, dataset):
                 start_index, end_index = search_span_endpoints(
                         start_probs, end_probs
                 )
-                
+
                 # Grab predicted span.
                 pred_span = ' '.join(passage[start_index:(end_index + 1)])
 
@@ -516,7 +530,7 @@ def main(args):
             if eval_loss < best_eval_loss:
                 best_eval_loss = eval_loss
                 torch.save(model.state_dict(), args.model_path)
-            
+
             print(
                 f'epoch = {epoch} | '
                 f'train loss = {train_loss:.6f} | '

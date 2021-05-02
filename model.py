@@ -182,8 +182,8 @@ class BaselineReader(nn.Module):
         # options_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_options.json"
         # weight_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
         # Local Copy
-        options_file = "C:/Users/Soham/Desktop/elmo_2x4096_512_2048cnn_2xhighway_options.json"
-        weight_file = "C:/Users/Soham/Desktop/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
+        # options_file = "C:/Users/Soham/Desktop/elmo_2x4096_512_2048cnn_2xhighway_options.json"
+        # weight_file = "C:/Users/Soham/Desktop/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
 
         # ELMo small
         # options_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x1024_128_2048cnn_1xhighway/elmo_2x1024_128_2048cnn_1xhighway_options.json"
@@ -191,7 +191,7 @@ class BaselineReader(nn.Module):
         # Local Copy
         # options_file = "C:/Users/Soham/Desktop/elmo_2x1024_128_2048cnn_1xhighway_options.json"
         # weight_file = "C:/Users/Soham/Desktop/elmo_2x1024_128_2048cnn_1xhighway_weights.hdf5"
-        self.elmo = Elmo(options_file, weight_file, 1, dropout=0)
+        self.elmo = Elmo(args.options_file, self.weight_file, 1, dropout=0)
 
         # Initialize Context2Query (2)
         self.aligned_att = AlignedAttention(args.embedding_dim)
