@@ -54,7 +54,7 @@ class Vocabulary:
             (at position 0) and `UNK_TOKEN` (at position 1) are prepended.
         """
         vocab = collections.defaultdict(int)
-        for (_, passage, question, _, _) in samples:
+        for (_, passage, question, _, _, _, _) in samples:
             for token in itertools.chain(passage, question):
                 vocab[token.lower()] += 1
         top_words = [
@@ -63,7 +63,7 @@ class Vocabulary:
         ][:vocab_size]
         words = [PAD_TOKEN, UNK_TOKEN] + top_words
         return words
-    
+
     def __len__(self):
         return len(self.words)
 
@@ -157,17 +157,25 @@ class QADataset(Dataset):
         samples = []
         for elem in self.elems:
             # Unpack the context paragraph. Shorten to max sequence length.
-            passage = [
-                token.lower() for (token, offset) in elem['context_tokens']
+            # passage = [
+            #     token.lower() for (token, offset) in elem['context_tokens']
+            # ][:self.args.max_context_length]
+            case_sens_passage = [
+                token for (token, offset) in elem['context_tokens']
             ][:self.args.max_context_length]
+            passage = [token.lower() for token in case_sens_passage]
 
             # Each passage has several questions associated with it.
             # Additionally, each question has multiple possible answer spans.
             for qa in elem['qas']:
                 qid = qa['qid']
-                question = [
-                    token.lower() for (token, offset) in qa['question_tokens']
+                # question = [
+                #     token.lower() for (token, offset) in qa['question_tokens']
+                # ][:self.args.max_question_length]
+                case_sens_question = [
+                    token for (token, offset) in qa['question_tokens']
                 ][:self.args.max_question_length]
+                question = [token.lower() for token in case_sens_question]
 
                 # Select the first answer span, which is formatted as
                 # (start_position, end_position), where the end_position
@@ -175,9 +183,10 @@ class QADataset(Dataset):
                 answers = qa['detected_answers']
                 answer_start, answer_end = answers[0]['token_spans'][0]
                 samples.append(
-                    (qid, passage, question, answer_start, answer_end)
+                    (qid, passage, question, answer_start, answer_end,
+                     case_sens_passage, case_sens_question)
                 )
-                
+
         return samples
 
     def _create_data_generator(self, shuffle_examples=False):
@@ -203,9 +212,14 @@ class QADataset(Dataset):
         questions = []
         start_positions = []
         end_positions = []
+        str_passages = []
+        str_questions = []
+        str_case_sens_passages = []
+        str_case_sens_questions = []
         for idx in example_idxs:
             # Unpack QA sample and tokenize passage/question.
-            qid, passage, question, answer_start, answer_end = self.samples[idx]
+            (qid, passage, question, answer_start, answer_end,
+             case_sens_passage, case_sens_question) = self.samples[idx]
 
             # Convert words to tensor.
             passage_ids = torch.tensor(
@@ -223,7 +237,13 @@ class QADataset(Dataset):
             start_positions.append(answer_start_ids)
             end_positions.append(answer_end_ids)
 
-        return zip(passages, questions, start_positions, end_positions)
+            str_passages.append(passage)
+            str_questions.append(question)
+            str_case_sens_passages.append(case_sens_passage)
+            str_case_sens_questions.append(case_sens_question)
+
+        return zip(passages, questions, start_positions, end_positions,
+                   str_passages, str_questions, str_case_sens_passages, str_case_sens_questions)
 
     def _create_batches(self, generator, batch_size):
         """
@@ -258,6 +278,10 @@ class QADataset(Dataset):
             questions = []
             start_positions = torch.zeros(bsz)
             end_positions = torch.zeros(bsz)
+            str_passages = []
+            str_questions = []
+            str_case_sens_passages = []
+            str_case_sens_questions = []
             max_passage_length = 0
             max_question_length = 0
             # Check max lengths for both passages and questions
@@ -266,6 +290,10 @@ class QADataset(Dataset):
                 questions.append(current_batch[ii][1])
                 start_positions[ii] = current_batch[ii][2]
                 end_positions[ii] = current_batch[ii][3]
+                str_passages.append(current_batch[ii][4])
+                str_questions.append(current_batch[ii][5])
+                str_case_sens_passages.append(current_batch[ii][6])
+                str_case_sens_questions.append(current_batch[ii][7])
                 max_passage_length = max(
                     max_passage_length, len(current_batch[ii][0])
                 )
@@ -288,7 +316,11 @@ class QADataset(Dataset):
                 'passages': cuda(self.args, padded_passages).long(),
                 'questions': cuda(self.args, padded_questions).long(),
                 'start_positions': cuda(self.args, start_positions).long(),
-                'end_positions': cuda(self.args, end_positions).long()
+                'end_positions': cuda(self.args, end_positions).long(),
+                'str_passages': str_passages,
+                'str_questions': str_questions,
+                'str_case_sens_passages': str_case_sens_passages,
+                'str_case_sens_questions': str_case_sens_questions,
             }
 
             if no_more_data:
@@ -321,6 +353,6 @@ class QADataset(Dataset):
             tokenizer: If `True`, shuffle examples. Default: `False`
         """
         self.tokenizer = tokenizer
-    
+
     def __len__(self):
         return len(self.samples)
