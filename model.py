@@ -178,21 +178,6 @@ class BaselineReader(nn.Module):
         # Initialize embedding layer (1)
         self.embedding = nn.Embedding(args.vocab_size, args.embedding_dim)
 
-        # ELMo original
-        # options_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_options.json"
-        # weight_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
-        # Local Copy
-        # options_file = "C:/Users/Soham/Desktop/elmo_2x4096_512_2048cnn_2xhighway_options.json"
-        # weight_file = "C:/Users/Soham/Desktop/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
-
-        # ELMo small
-        # options_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x1024_128_2048cnn_1xhighway/elmo_2x1024_128_2048cnn_1xhighway_options.json"
-        # weight_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x1024_128_2048cnn_1xhighway/elmo_2x1024_128_2048cnn_1xhighway_weights.hdf5"
-        # Local Copy
-        # options_file = "C:/Users/Soham/Desktop/elmo_2x1024_128_2048cnn_1xhighway_options.json"
-        # weight_file = "C:/Users/Soham/Desktop/elmo_2x1024_128_2048cnn_1xhighway_weights.hdf5"
-        # self.elmo = Elmo(self.args.options_file, self.args.weight_file, 1, dropout=0)
-
         # Initialize Context2Query (2)
         self.aligned_att = AlignedAttention(args.embedding_dim)
 
@@ -301,12 +286,6 @@ class BaselineReader(nn.Module):
         passage_embeddings = self.embedding(batch['passages'])  # [batch_size, p_len, p_dim]
         question_embeddings = self.embedding(batch['questions'])  # [batch_size, q_len, q_dim]
 
-        # passage_ids = cuda(self.args, batch_to_ids(batch['str_passages']))
-        # passage_embeddings = self.elmo(passage_ids)['elmo_representations'][0]
-
-        # question_ids = cuda(self.args, batch_to_ids(batch['str_questions']))
-        # question_embeddings = self.elmo(question_ids)['elmo_representations'][0]
-
         # 2) Context2Query: Compute weighted sum of question embeddings for
         #        each passage word and concatenate with passage embeddings.
         aligned_scores = self.aligned_att(
@@ -350,20 +329,6 @@ class BaselineReader(nn.Module):
 
 class BaselineReaderElmo(nn.Module):
     """
-    Baseline QA Model
-    [Architecture]
-        0) Inputs: passages and questions
-        1) Embedding Layer: converts words to vectors
-        2) Context2Query: computes weighted sum of question embeddings for
-               each position in passage.
-        3) Passage Encoder: LSTM or GRU.
-        4) Question Encoder: LSTM or GRU.
-        5) Question Attentive Sum: computes weighted sum of question hidden.
-        6) Start Position Pointer: computes scores (logits) over passage
-               conditioned on the question vector.
-        7) End Position Pointer: computes scores (logits) over passage
-               conditioned on the question vector.
-
     Args:
         args: `argparse` object.
 
@@ -385,9 +350,6 @@ class BaselineReaderElmo(nn.Module):
 
         self.args = args
         self.pad_token_id = args.pad_token_id
-
-        # Initialize embedding layer (1)
-        # self.embedding = nn.Embedding(args.vocab_size, args.embedding_dim)
 
         # ELMo original
         # options_file = "https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_options.json"
@@ -450,25 +412,6 @@ class BaselineReaderElmo(nn.Module):
             vocabulary: `Vocabulary` object.
             path: Embedding path, e.g. "glove/glove.6B.300d.txt".
         """
-        # embedding_map = load_cached_embeddings(path)
-
-        # # Create embedding matrix. By default, embeddings are randomly
-        # # initialized from Uniform(-0.1, 0.1).
-        # embeddings = torch.zeros(
-        #     (len(vocabulary), self.args.embedding_dim)
-        # ).uniform_(-0.1, 0.1)
-
-        # # Initialize pre-trained embeddings.
-        # num_pretrained = 0
-        # for (i, word) in enumerate(vocabulary.words):
-        #     if word in embedding_map:
-        #         embeddings[i] = torch.tensor(embedding_map[word])
-        #         num_pretrained += 1
-
-        # # Place embedding matrix on GPU.
-        # self.embedding.weight.data = cuda(self.args, embeddings)
-
-        # return num_pretrained
         return 0
 
     def sorted_rnn(self, sequences, sequence_lengths, rnn):
@@ -509,10 +452,7 @@ class BaselineReaderElmo(nn.Module):
         passage_lengths = passage_mask.long().sum(-1)  # [batch_size]
         question_lengths = question_mask.long().sum(-1)  # [batch_size]
 
-        # 1) Embedding Layer: Embed the passage and question.
-        # passage_embeddings = self.embedding(batch['passages'])  # [batch_size, p_len, p_dim]
-        # question_embeddings = self.embedding(batch['questions'])  # [batch_size, q_len, q_dim]
-
+        # 1) ELMo Embedding Layer: Embed the passage and question.
         passage_ids = cuda(self.args, batch_to_ids(batch['str_passages']))
         passage_embeddings = self.elmo(passage_ids)['elmo_representations'][0]
 
