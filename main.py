@@ -51,13 +51,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     '--weight_file',
     type=str,
-    required=True,
+    required=False,
     help='ELMo weight file path',
 )
 parser.add_argument(
     '--options_file',
     type=str,
-    required=True,
+    required=False,
     help='ELMo options file path',
 )
 

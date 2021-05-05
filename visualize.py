@@ -96,7 +96,7 @@ def main(args):
     print()
 
     # Visualize samples.
-    for (qid, context, question, answer_start, answer_end) in vis_samples:
+    for (qid, context, question, answer_start, answer_end, _, _) in vis_samples:
         print('[METADATA]')
         print(f'path = \'{args.path}\'')
         print(f'question id = {qid}')
